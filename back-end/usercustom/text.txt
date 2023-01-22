@@ -1,0 +1,2 @@
+from django.core.mail import send_mail
+send_mail('Welcome to DEP', 'Please find your otp below 12334', 'donotreplydep@gmail.com',['sou25102002@gmailcom'], fail_silently=False)

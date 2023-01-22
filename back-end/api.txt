@@ -1,0 +1,45 @@
+apply for course
+
+Login required
+
+/apply/create/
+
+status values
+0:pending instructor approval
+1:pending advisor approval
+2:enrolled
+3:Withdrawn
+4:drop
+5:Rejected by advisor
+6:Rejected by instructor
+
+Demo json to create:
+{
+  "course": 1, #courseid
+  "status": 0 #default application 0
+}
+
+/apply/<int>/ : post:
+
+{
+    "status":<new status type integer value based on above status values>
+}
+
+# Path: course\models.py
+course_apply{
+    id,
+name,
+credits,
+instructor,
+state,
+grade,
+attendence,
+}
+
+coures{
+    id,
+    name,
+    inst,
+    adv,
+    credits,
+}
