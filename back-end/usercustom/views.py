@@ -40,7 +40,8 @@ def login_page(request):
             otp.setup()
             otp.save()
         except:
-            return Response({'error':'no user found. Do you want to register.'},status = status.HTTP_204_NO_CONTENT)
+            print('no user found')
+            return Response({'error':'no user found. Do you want to register.'},status = status.HTTP_401_UNAUTHORIZED)
         return Response(serializedData.data)
     else:
         return Response(serializedData.errors)
@@ -64,8 +65,7 @@ def otp_verify(request):
                     'user': UserSerializer(current_user).data
                     })
             else:
-                otpObject.delete()
-                return Response({"login":False,"error":"OTP is invalid or expired"})
+                return Response({"login":False,"error":"OTP is invalid or expired"},status = status.HTTP_401_UNAUTHORIZED)
         except:
             return Response({'error':'Invalid request. Use login or register.'},status = status.HTTP_204_NO_CONTENT)
     else:

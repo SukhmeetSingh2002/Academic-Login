@@ -4,6 +4,7 @@ import Dropdown from "./Dropdown";
 
 const InstructorTable = ({ courseList }) => {
   const actions = ["Accept", "Reject"];
+  const status_actions = ['pending instructor approval','pending advisor approval','enrolled','Withdrawn','drop','Rejected by advisor','Rejected by instructor'] 
   return (
     <div className=" shadow-md sm:rounded-lg">
       <table className=" overflow-hidden w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -20,11 +21,11 @@ const InstructorTable = ({ courseList }) => {
             <th scope="col" className="px-6 py-3">
               Student Name
             </th>
-            {/* <th scope="col" className="px-6 py-3">
-              Course Name
-            </th> */}
             <th scope="col" className="px-6 py-3">
               Credits
+            </th>
+            <th scope="col" className="px-6 py-3">
+              Status
             </th>
             {/* <th scope="col" className="px-6 py-3">
                             Status
@@ -45,6 +46,7 @@ const InstructorTable = ({ courseList }) => {
               </th>
               <td className="px-6 py-4">{course.student}</td>
               <td className="px-6 py-4">{course.credits}</td>
+              <td className="px-6 py-4">{status_actions[course.status]}</td>
               {/* <td className="px-6 py-4">{course.credit}</td> */}
               {/* <td className="px-6 py-4">{course.status}</td> */}
 

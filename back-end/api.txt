@@ -43,3 +43,14 @@ coures{
     adv,
     credits,
 }
+
+{
+"first_name":"Nobita",
+"last_name":"Kiteretsu",
+"username":"Nobita",
+"password":"asdf@1234",
+"password2":"asdf@1234",
+"email":"nobits@iitrpr.ac.in",
+"group":"Student",
+"batch":1
+}

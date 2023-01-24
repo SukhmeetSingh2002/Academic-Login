@@ -1,159 +1,227 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import Navbar from '../../components/Navbar'
-import Table from '../../components/Table'
-import { useState } from 'react'
-import { useRef } from 'react'
-import Router from 'next/router'
-// import { Inter } from '@next/font/google'
-// import styles from '@/styles/Home.module.css'
+import Head from "next/head";
+import Image from "next/image";
+import Navbar from "../../components/Navbar";
+import Table from "../../components/Table";
+import { useState } from "react";
+import { useRef } from "react";
+import Router from "next/router";
 
-// const inter = Inter({ subsets: ['latin'] })
+import ButtonOutlined from "components/ButtonOutlined";
+import Button from "components/Button";
+import LoadingButton from "components/LoadingButton";
+
+import { AuthContext } from "@/context/AuthContext";
+import { useContext } from "react";
+
+// paths
+import { serverAddress, LoginPath } from "config/constants";
+import { VerifyPath } from "config/constants";
 
 export default function Home() {
-  // make email ref
-  const otpRef = useRef();
-  // set error message
-  const getRedirect = (group) => {
-    if (group === "Student") {
-      return "student";
-    }
-    else if (group === "Faculty Advisor") {
-      return "advisor";
-    }
-    else if (group === "Instructor") {
-      return "instructor";
-    }
-  }
-  const handleClickOtp = async (e) => {
-    e.preventDefault();
-    setErrorMessage("");
-    const otp = otpRef.current.value;
-    console.log(otp);
+    // auth context
+    const { user, isLoggedIn, accessToken, refreshToken, login } =
+        useContext(AuthContext);
 
-    // send otp to backend
-    const data = await fetch("http://localhost:8000/verify", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ "otp": otp, "email": emailRef.current.value }),
+    // if already login, redirect to its page
+    // make email ref
+    const emailRef = useRef();
+    const otpRef = useRef();
+    // set error message
+
+    const [errorMessage, setErrorMessage] = useState("");
+    const [loading, setLoading] = useState({
+        email: false,
+        otp: false,
     });
-    const res = await data.json();
-    // if success, redirect to student page
-    // console.log(res)
-    // console.log(res.access)
-    // console.log(res.login)
-    if (res.login) {
-      // set token in local storage
-      localStorage.setItem("token", res.access);
-      console.log("success");
-      const redirect = getRedirect(res.user.groups[0])
-      Router.push("/" + redirect);
+    const [otpSent, setOtpSent] = useState(false);
+
+    const getRedirect = (group) => {
+        if (group === "Student") {
+            return "student";
+        } else if (group === "Faculty Advisor") {
+            return "advisor";
+        } else if (group === "Instructor") {
+            return "instructor";
+        }
+    };
+    const handleGetOtp = async (e) => {
+        e.preventDefault();
+        setErrorMessage("");
+        setOtpSent(false);
+        setLoading({
+            ...loading,
+            otp: true,
+        });
+
+        const email = emailRef.current.value;
+        if (email.match(/\w+@iitrpr\.ac\.in/)) {
+            const data = await fetch(serverAddress + LoginPath, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email }),
+            });
+            console.log("matched");
+            console.log(data.status);
+            console.log(data);
+            // if success, redirect to student page cheking status
+            if (data.status === 200) {
+                const res = await data.json();
+                console.log(res);
+                setOtpSent(true);
+                setErrorMessage("OTP sent to your email");
+            } else if (data.status === 401) {
+                console.log("error");
+                const res = await data.json();
+                setErrorMessage(res.error);
+                setOtpSent(false);
+            } else {
+                console.log("error");
+                setErrorMessage("Something went wrong");
+                setOtpSent(false);
+            }
+        } else {
+            console.log("invalid email");
+            setOtpSent(false);
+            setErrorMessage("Please enter a valid email");
+        }
+        setLoading({
+            ...loading,
+            otp: false,
+        });
+    };
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setErrorMessage("");
+        setLoading({
+            ...loading,
+            email: true,
+        });
+
+        const otp = otpRef.current.value;
+        const email = emailRef.current.value;
+        console.log(otp);
+
+        // send otp to backend
+        const data = await fetch(serverAddress + VerifyPath, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ otp, email }),
+        });
+        if (data.status === 200) {
+            const res = await data.json();
+            console.log(res);
+            // store token in local storage
+            localStorage.setItem("token", res.access);
+            console.log("success");
+            // get redirect
+            const redirect = getRedirect(res.user.groups[0]);
+
+            // auth context
+            login(res.access, res.refresh, res.user);
+            // redirect to student page
+            Router.push(`/${redirect}`);
+        }
+        // if error, show error message
+        else if (data.status === 401) {
+            console.log("error");
+            const res = await data.json();
+            setErrorMessage(res.error);
+        } else {
+            console.log("error");
+            setErrorMessage("Something went wrong");
+        }
+        setLoading({
+            ...loading,
+            email: false,
+        });
+    };
+    if (isLoggedIn) {
+        Router.push("/" + getRedirect(user.groups[0]));
     }
-    // if error, show error message
-    else {
-      console.log("error");
-      setErrorMessage("Something went wrong");
-    }
-  };
-  const emailRef = useRef()
-  // set error message
-  const [errorMessage, setErrorMessage] = useState('')
-  const [loading, setLoading] = useState(false);
 
-  const handleClick = async (e) => {
-    e.preventDefault()
-    setLoading(true);
-    setErrorMessage('')
-    const email = emailRef.current.value
-    console.log(email)
-    // valide email using regex
-    // if valid, send email to backend
-    if (email.match(/\w+@iitrpr\.ac\.in/)) {
-      console.log('valid email')
-      // send email to backend
-      const data = await fetch('http://localhost:8000/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email })
-      })
-      // console.log(data)
-      const res = await data.json()
-      // if success, redirect to student page
-      console.log(res)
-      if (res.email) {
-        console.log('success')
-        // Router.push('/verifyOtp')
-      }
-      // if error, show error message
-      else {
-        console.log('error')
-        setErrorMessage('Something went wrong')
-      }
-      setLoading(false);
+    return (
+        <>
+            <Head>
+                <title>Student</title>
+                <meta
+                    name="description"
+                    content="Generated by create next app"
+                />
+                <meta
+                    name="viewport"
+                    content="width=device-width, initial-scale=1"
+                />
+            </Head>
+            <main className="container_all">
+                {/* bootstarp taoast and error */}
+                <div className="grid gap-6 mb-6 md:grid-cols-2">
+                    {/* otp */}
+                    <div className="relative">
+                        <input
+                            type="text"
+                            id="floating_outlined"
+                            className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none  focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                            placeholder=" "
+                            ref={emailRef}
+                        />
+                        <label
+                            htmlFor="floating_outlined"
+                            className="absolute text-sm text-gray-500  duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white  px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1"
+                        >
+                            Enter your Email
+                        </label>
+                    </div>
+                    {/* email */}
+                    <div className="relative">
+                        <input
+                            type="text"
+                            className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none  focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                            placeholder=" "
+                            ref={otpRef}
+                        />
+                        <label
+                            htmlFor="floating_outlined"
+                            className="absolute text-sm text-gray-500  duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white  px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1"
+                        >
+                            Enter OTP
+                        </label>
+                    </div>
+                    {
+                        <p
+                            id="filled_success_help"
+                            className={`mt-2 text-xs text-red-600 ${
+                                errorMessage === "" ? "invisible" : ""
+                            }`}
+                        >
+                            <span className="font-medium">{errorMessage}</span>
+                        </p>
+                    }
+                </div>
 
-
-    }
-    // if invalid, show error message
-    else {
-      console.log('invalid email')
-      setErrorMessage('Please enter a valid email')
-    }
-  }
-  return (
-    <>
-      <Head>
-        <title>Login</title>
-        <meta name="description" content="Generated by create next app" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous"></link>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous" defer></script>
-      </Head>
-      <main className="container">
-        {/* bootstarp taoast and error */}
-        {errorMessage && (
-          <div className="alert alert-danger" role="alert">
-            {errorMessage}
-          </div>
-        )}
-
-        <div className="mb-3">
-          <label htmlFor="exampleInputEmail1" className="form-label" >Email address</label>
-          <input type="email" className="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" ref={emailRef} />
-        </div>
-        <button type="button" className="btn text-red" onClick={handleClick}
-        >{loading ? 'Loading...' : 'Submit'}</button>
-        {/* bootstarp taoast and error */}
-        {errorMessage && (
-          <div className="alert alert-danger" role="alert">
-            {errorMessage}
-          </div>
-        )}
-
-        <div className="mb-3">
-          <label htmlFor="exampleInputEmail1" className="form-label">
-            Enter OTP
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="exampleInputEmail1"
-            aria-describedby="emailHelp"
-            ref={otpRef}
-          />
-        </div>
-        <button
-          type="button"
-          class="btn text-red"
-          onClick={handleClickOtp}
-        >
-          Submit
-        </button>
-
-      </main>
-    </>
-  )
+                {/* adding buttons */}
+                <div className="grid gap-6 mb-6 md:grid-cols-2">
+                    <div onClick={handleGetOtp}>
+                        {loading.otp ? (
+                            <LoadingButton />
+                        ) : (
+                            <ButtonOutlined Text="GetOtp" />
+                        )}
+                    </div>
+                    {/* login button */}
+                    <div onClick={handleLogin}>
+                        {loading.email ? (
+                            <LoadingButton />
+                        ) : (
+                            <Button Text="Login" />
+                        )}
+                    </div>
+                </div>
+            </main>
+        </>
+    );
 }

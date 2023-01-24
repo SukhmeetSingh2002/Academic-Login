@@ -7,7 +7,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from .models import Course
-
+from course_apply.models import CourseApply
 
 class courses_show(APIView):
     authentication_classes = [JWTAuthentication]
@@ -16,11 +16,16 @@ class courses_show(APIView):
         user = request.user
         if user.groups.filter(name='Student').exists():
             current = Course.objects.all()
+            temp = user.studentOf.all().values_list('course',flat=True)
+            currents = Course.objects.filter(pk__in = temp)
+            current = current.difference(currents)
         elif user.groups.filter(name='Instructor').exists():
             current = Course.objects.filter(instructor = user)
         elif user.groups.filter(name='Faculty Advisor').exists():
             current = Course.objects.all()
         print(current)
+        print(temp)
+        print(currents)
         serializer = CourseSerializer(current,many = True)
         return Response(serializer.data)
     

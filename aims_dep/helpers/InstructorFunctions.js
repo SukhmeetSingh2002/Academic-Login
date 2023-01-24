@@ -1,8 +1,4 @@
-import React from 'react'
-
-const serverAddress = "http://localhost:8000";
-const CourseListPath = "/apply/";
-const CourseAddPath = "/course";
+import { serverAddress, CourseListPath, CourseAddPath } from "config/constants";
 
 const GetCoursesInstructor = async () => {
   const data = await fetch(serverAddress + CourseListPath, {
@@ -34,17 +30,18 @@ const ChangeStatusInstructor = async (action, id) => {
   });
   const result = await data.json();
   console.log(result)
+  // console.log(result.error)
   console.log(data)
-  alert("hi")
-  if (result.status === undefined) {
-    alert(data.error)
+  if (data.status === 200){
+    alert(result.status)
   }
   else {
-    alert(result.status)
+    alert(result.error)
   }
 }
 
-const AddCourseInstructor = async (courseName, courseCredit) => {
+const AddCourseInstructor = async (courseName, courseCredit,e) => {
+  e.preventDefault();
   console.log(courseName);
   console.log(courseCredit);
   const data = await fetch(serverAddress + CourseAddPath + "/create/", {
@@ -56,6 +53,7 @@ const AddCourseInstructor = async (courseName, courseCredit) => {
     body: JSON.stringify({ "name": courseName, "credits": courseCredit }),
   });
   const result = await data.json();
+  console.log(result)
   if (data.status === 201) {
     alert("Course added successfully")
   }

@@ -3,6 +3,10 @@ import Dropdown from "./Dropdown";
 import { useState, useEffect } from "react";
 import { useRef } from "react";
 import { ApplyCourseStudent } from "helpers/StudentFunctions";
+
+import Button from "./Button";
+
+
 const SelectMenu = ({ Heading,courseList }) => {
 
   const selectRef = useRef();
@@ -31,7 +35,9 @@ const SelectMenu = ({ Heading,courseList }) => {
           </option>
         ))}
       </select>
-      <button  onClick={() => ApplyCourseStudent(selectRef.current.value)}>Add</button>
+      <div onClick={() => ApplyCourseStudent(selectRef.current.value)}>
+        <Button Text={"Apply"} />
+      </div>
     </>
   );
 };

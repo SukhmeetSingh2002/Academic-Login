@@ -82,6 +82,12 @@ class application_view(APIView):
             except:
                 print('put try')
                 return Response({'error':'You are not authorized to edit applications'},status=status.HTTP_401_UNAUTHORIZED)
+            print(request.data)
+            if request.data.get('status') == 2 and current.status == 5:
+                current.status = 0
+                current.save()
+                print('put if')
+                return Response({'status':'Sent for instructor approval'},status=status.HTTP_200_OK)
             if request.data.get('status') == 2 and current.status == 1:
                 current.status = 2
                 current.save()
@@ -92,6 +98,9 @@ class application_view(APIView):
                 current.save()
                 print('put elif')
                 return Response({'status':'Application rejected'},status=status.HTTP_200_OK)
+            elif current.status == 0:
+                print('put elif 0')
+                return Response({'error':'Application is not approved by Instructor'},status=status.HTTP_401_UNAUTHORIZED)
             else:
                 print('put else')
                 return Response({'error':"Invalid Request"},status=status.HTTP_401_UNAUTHORIZED)
@@ -103,14 +112,17 @@ class application_view(APIView):
                 current = CourseApply.objects.get(id = pk,course__instructor = user)
             except:
                 return Response({'error':'You are not authorized to edit applications as an Instructor'},status=status.HTTP_401_UNAUTHORIZED)
-            if request.data.get('status') == 1:
-                current.status = 1
+            if current.status == 0 or current.status == 6:
+                current.status = request.data.get('status')
                 current.save()
                 return Response({'status':'Application approved'},status=status.HTTP_200_OK)
             elif request.data.get('status') == 6:
-                current.status = 6
-                current.save()
-                return Response({'status':'Application rejected'},status=status.HTTP_200_OK)
+                if current.status!=4 or current.status!=3:
+                    current.status = 6
+                    current.save()
+                    return Response({'status':'Application rejected'},status=status.HTTP_200_OK)
+                else:
+                    return Response({'error':'Unable to reject application'},status=status.HTTP_401_UNAUTHORIZED)
             else:
                 return Response({'error':'Invalid request'},status=status.HTTP_401_UNAUTHORIZED)
         
