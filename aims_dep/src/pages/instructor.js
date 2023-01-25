@@ -7,7 +7,6 @@ import { useRef } from "react";
 import { AuthContext } from "@/context/AuthContext";
 import { useContext } from "react";
 
-
 import InstructorTable from "components/InstructorTable";
 import {
     AddCourseInstructor,
@@ -15,19 +14,9 @@ import {
     GetCoursesInstructor,
 } from "helpers/InstructorFunctions";
 
-
 export default function Home() {
     // auth context
     const { user, isLoggedIn, logout } = useContext(AuthContext);
-
-    if (!isLoggedIn) {
-        return <div>Not logged in</div>;
-    }
-
-    if (user.groups[0] !== "Instructor") {
-        return <div>Not an Instructor</div>;
-    }
-    
 
     const [courseList, setCourseList] = useState([]);
 
@@ -41,6 +30,15 @@ export default function Home() {
 
     const addCourseName = useRef();
     const addCourseCredits = useRef();
+
+    if (!isLoggedIn) {
+        return <div>Not logged in</div>;
+    }
+
+    if (user.groups[0] !== "Instructor") {
+        return <div>Not an Instructor</div>;
+    }
+
     return (
         <>
             <Head>
@@ -57,8 +55,8 @@ export default function Home() {
             <main>
                 {/* <Navbar />
         <div>
-          <p> Student </p>
-        </div> */}
+        <p> Student </p>
+    </div> */}
                 <h1 className="text-center">Welcome {user.username}</h1>
                 <h1 className="text-center">Email: {user.email}</h1>
                 <br></br>
@@ -113,7 +111,6 @@ export default function Home() {
                         </button>
                     </form>
                 </div>
-
             </main>
         </>
     );

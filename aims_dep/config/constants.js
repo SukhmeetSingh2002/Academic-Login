@@ -1,4 +1,4 @@
-export const serverAddress = "http://localhost:8000";
+export const serverAddress = "https://mydepbackend.up.railway.app";
 export const CourseListPath = "/apply/";
 export const CourseAddPath = "/course";
 

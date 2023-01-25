@@ -1,10 +1,17 @@
 import { Box, Heading, Stack, Button } from "@chakra-ui/react";
 import Team from "components/Team";
+import Head from "next/head";
 import Link from "next/link";
 
 export default function Home() {
     return (
         <>
+        <Head>
+            <title>AIMS</title>
+            <meta name="description" content="AIMS" />
+            <link rel="icon" href="/favicon.ico" />
+            
+        </Head>
             <Box
                 bg="blue.50"
                 w="100%"
